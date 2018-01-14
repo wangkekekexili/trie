@@ -13,6 +13,12 @@ func (t *trie) Add(k string, v interface{}) {
 	t.root.add(runes, v)
 }
 
+func (t *trie) Delete(k string) bool {
+	runes := []rune(k)
+	deleted, _ := t.root.delete(runes)
+	return deleted
+}
+
 func (t *trie) Get(k string) (interface{}, bool) {
 	runes := []rune(k)
 	return t.root.get(runes)
@@ -43,6 +49,36 @@ func (n *node) add(k []rune, v interface{}) {
 		n.children[nextKey] = newNode()
 	}
 	n.children[nextKey].add(k[1:], v)
+}
+
+// delete returns two booleans.
+// The first indicates whether k exists in the tree.
+// The second indicates whether parent node should do cleanup.
+func (n *node) delete(k []rune) (bool, bool) {
+	if len(k) == 0 {
+		if n.hasValue {
+			n.hasValue = false
+			n.value = nil
+			return true, len(n.children) == 0
+		} else {
+			return false, false
+		}
+	}
+
+	nextKey := k[0]
+	nextNode, ok := n.children[nextKey]
+	if !ok {
+		return false, false
+	}
+	deleted, needCleanup := nextNode.delete(k[1:])
+	if !needCleanup {
+		return deleted, false
+	}
+
+	delete(n.children, nextKey)
+
+	// The current node needs to be cleaned up if it doesn't have more children and doesn't have data.
+	return true, len(n.children) == 0 && !n.hasValue
 }
 
 func (n *node) get(k []rune) (interface{}, bool) {

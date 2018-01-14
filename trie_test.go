@@ -29,4 +29,15 @@ func TestTrie(t *testing.T) {
 			t.Fatalf("expect %v not exist in the trie", input)
 		}
 	}
+
+	for input := range strs {
+		deleted := trie.Delete(input)
+		if !deleted {
+			t.Fatalf("expect %v to be deleted", input)
+		}
+		deleted = trie.Delete(input)
+		if deleted {
+			t.Fatalf("the second Delete call to %v should return false", input)
+		}
+	}
 }
