@@ -13,9 +13,9 @@ func (t *trie) Add(k string, v interface{}) {
 	t.root.add(runes, v)
 }
 
-func (t *trie) IsMember(k string) bool {
+func (t *trie) Get(k string) (interface{}, bool) {
 	runes := []rune(k)
-	return t.root.isMember(runes)
+	return t.root.get(runes)
 }
 
 type node struct {
@@ -45,13 +45,17 @@ func (n *node) add(k []rune, v interface{}) {
 	n.children[nextKey].add(k[1:], v)
 }
 
-func (n *node) isMember(k []rune) bool {
+func (n *node) get(k []rune) (interface{}, bool) {
 	if len(k) == 0 {
-		return n.hasValue
+		if !n.hasValue {
+			return nil, false
+		}
+		return n.value, true
 	}
+
 	nextNode, ok := n.children[k[0]]
 	if !ok {
-		return false
+		return nil, false
 	}
-	return nextNode.isMember(k[1:])
+	return nextNode.get(k[1:])
 }
